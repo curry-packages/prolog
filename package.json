@@ -10,6 +10,8 @@
         "kics2": ">= 0.5.0,  < 2.0.0"
     },
     "exportedModules": [ "Prolog.Types", "Prolog.Show" ],
+    "license": "BSD-3-Clause",
+    "licenseFile": "LICENSE",
     "source": {
         "git": "https://git.ps.informatik.uni-kiel.de/curry-packages/prolog.git",
         "tag": "$version"
