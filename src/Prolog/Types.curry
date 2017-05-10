@@ -11,9 +11,6 @@ module Prolog.Types
   ( PlClause(..), PlGoal(..), PlTerm(..), plList )
  where
 
-import Char(isAlphaNum,isLower)
-import List(union,intercalate)
-
 ----------------------------------------------------------------------------
 -- Representation of Prolog programs:
 
@@ -22,11 +19,13 @@ import List(union,intercalate)
 data PlClause = PlClause String [PlTerm] [PlGoal]
               | PlDirective [PlGoal]
               | PlQuery [PlGoal]
+ deriving Eq
 
 --- A Prolog goal is a literal, a negated goal, or a conditional.
 data PlGoal = PlLit String [PlTerm]
             | PlNeg [PlGoal]
             | PlCond [PlGoal] [PlGoal] [PlGoal]
+ deriving Eq
 
 --- A Prolog term is a variable, an atom, a number, or a structure.
 data PlTerm = PlVar String
@@ -34,6 +33,7 @@ data PlTerm = PlVar String
             | PlInt Int
             | PlFloat Float
             | PlStruct String [PlTerm]
+ deriving Eq
 
 --- Constructs a Prolog list object from a list of Prolog terms.
 plList :: [PlTerm] -> PlTerm

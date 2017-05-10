@@ -148,7 +148,7 @@ isPlVar t = case t of
 varOf :: PlTerm -> String
 varOf (PlVar v) = v
 
-unionMap :: (a -> [b]) -> [a] -> [b]
+unionMap :: Eq b => (a -> [b]) -> [a] -> [b]
 unionMap f = foldr union [] . map f
 
 ----------------------------------------------------------------------------
