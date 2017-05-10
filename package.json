@@ -1,0 +1,17 @@
+{
+    "name": "prolog",
+    "version": "1.0.0",
+    "author": "Michael Hanus <mh@informatik.uni-kiel.de>",
+    "synopsis": "Libraries to represent Prolog programs in Curry",
+    "category": [ "Metaprogramming" ],
+    "dependencies": { },
+    "compilerCompatibility": {
+        "pakcs": ">= 1.14.0, < 2.0.0",
+        "kics2": ">= 0.5.0,  < 2.0.0"
+    },
+    "exportedModules": [ "Prolog.Types", "Prolog.Show" ],
+    "source": {
+        "git": "https://git.ps.informatik.uni-kiel.de/curry-packages/prolog.git",
+        "tag": "$version"
+    }
+}
