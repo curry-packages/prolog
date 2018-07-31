@@ -1,6 +1,6 @@
 {
     "name": "prolog",
-    "version": "2.0.0",
+    "version": "3.0.0",
     "author": "Michael Hanus <mh@informatik.uni-kiel.de>",
     "synopsis": "Libraries to represent Prolog programs in Curry",
     "category": [ "Metaprogramming" ],

@@ -11,8 +11,8 @@ module Prolog.Show
   ( showPlProg, showPlClause, showPlGoals, showPlGoal, showPlTerm )
  where
 
-import Char(isAlphaNum,isLower)
-import List(union,intercalate)
+import Data.Char (isAlphaNum,isLower)
+import Data.List (union,intercalate)
 
 import Prolog.Types
 
