@@ -4,7 +4,10 @@
     "author": "Michael Hanus <mh@informatik.uni-kiel.de>",
     "synopsis": "Libraries to represent Prolog programs in Curry",
     "category": [ "Metaprogramming" ],
-    "dependencies": { },
+    "dependencies": {
+        "base" : ">= 2.0.0"
+        
+    },
     "compilerCompatibility": {
         "pakcs": ">= 2.0.0",
         "kics2": ">= 2.0.0"
