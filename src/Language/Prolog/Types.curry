@@ -4,10 +4,10 @@
 --- for applications generating Prolog programs.
 ---
 --- @author Michael Hanus
---- @version May 2017
+--- @version November 2020
 ------------------------------------------------------------------------------
 
-module Prolog.Types
+module Language.Prolog.Types
   ( PlClause(..), PlGoal(..), PlTerm(..), plList )
  where
 

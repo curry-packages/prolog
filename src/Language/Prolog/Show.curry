@@ -2,19 +2,19 @@
 --- This library contains a simple pretty printer for showing Prolog programs.
 ---
 --- @author Michael Hanus
---- @version May 2017
+--- @version November 2020
 ------------------------------------------------------------------------------
 
 {-# OPTIONS_CYMAKE -Wno-incomplete-patterns #-}
 
-module Prolog.Show
+module Language.Prolog.Show
   ( showPlProg, showPlClause, showPlGoals, showPlGoal, showPlTerm )
  where
 
-import Char(isAlphaNum,isLower)
-import List(union,intercalate)
+import Data.Char ( isAlphaNum, isLower )
+import Data.List ( union, intercalate )
 
-import Prolog.Types
+import Language.Prolog.Types
 
 ----------------------------------------------------------------------------
 --- Shows a Prolog program in standard Prolog syntax.
