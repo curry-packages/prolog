@@ -2,10 +2,8 @@
 --- This library contains a simple pretty printer for showing Prolog programs.
 ---
 --- @author Michael Hanus
---- @version November 2020
+--- @version December 2021
 ------------------------------------------------------------------------------
-
-{-# OPTIONS_CYMAKE -Wno-incomplete-patterns #-}
 
 module Language.Prolog.Show
   ( showPlProg, showPlClause, showPlGoals, showPlGoal, showPlTerm )
@@ -38,21 +36,24 @@ showPlClause (PlQuery body) =
 showPlGoals :: [PlGoal] -> String
 showPlGoals gs = intercalate ", " (map showPlGoal gs)
 
-showPrimPlGoals :: [PlGoal] -> String
-showPrimPlGoals []         = "true"
-showPrimPlGoals [g]        = showPlGoal g
-showPrimPlGoals gs@(_:_:_) = "(" ++ intercalate ", " (map showPlGoal gs) ++ ")"
+showSimpleGoals :: [PlGoal] -> String
+showSimpleGoals []         = "true"
+showSimpleGoals [g]        = showPlGoal g
+showSimpleGoals gs@(_:_:_) = "(" ++ intercalate ", " (map showPlGoal gs) ++ ")"
 
 --- Shows a Prolog goal in standard Prolog syntax.
 showPlGoal :: PlGoal -> String
-showPlGoal (PlLit pred args) =
-  if pred=="="
-  then showPlTerm (args!!0) ++ "=" ++ showPlTerm (args!!1)
-  else showPlTerm (PlStruct pred args)
+showPlGoal (PlLit pred args)
+  | pred == "="
+  = showPlTerm (args!!0) ++ "=" ++ showPlTerm (args!!1)
+  | pred == "!" && null args
+  = "!"
+  | otherwise
+  = showPlTerm (PlStruct pred args)
 showPlGoal (PlNeg goal) =
-  "\\+" ++ showPrimPlGoals goal
+  "\\+" ++ showSimpleGoals goal
 showPlGoal (PlCond cond tgoal fgoal) =
-  "(" ++ showPrimPlGoals cond ++ " -> " ++ showPlGoals tgoal ++ " ; " ++
+  "(" ++ showSimpleGoals cond ++ " -> " ++ showPlGoals tgoal ++ " ; " ++
   showPlGoals fgoal ++ ")"
 
 --- Shows a Prolog term in standard Prolog syntax.
@@ -64,10 +65,11 @@ showPlTerm (PlFloat f)     = show f
 showPlTerm (PlStruct f []) = showPlAtom f
 showPlTerm (PlStruct f args@(h:t))
   | f=="." && length args == 2 -- a Prolog list
-    = "[" ++ showPlTerm h ++ showPlListElems (head t) ++ "]"
+  = "[" ++ showPlTerm h ++ showPlListElems (head t) ++ "]"
   | (f=="," || all (`elem` specialChars) f) && length args == 2 -- infix op
-    = "("++ showPlTerm (args!!0) ++ f ++ showPlTerm (args!!1) ++")"
-  | otherwise = showPlAtom f ++"("++ intercalate "," (map showPlTerm args) ++")"
+  = "(" ++ showPlTerm (args!!0) ++ f ++ showPlTerm (args!!1) ++ ")"
+  | otherwise
+  = showPlAtom f ++ "(" ++ intercalate "," (map showPlTerm args) ++ ")"
 
 showPlListElems :: PlTerm -> String
 showPlListElems xs = case xs of
@@ -97,26 +99,29 @@ optimizeClause (PlDirective body) = PlDirective (optimizeBody [] body)
 optimizeClause (PlQuery     body) = PlQuery     (optimizeBody [] body)
 
 optimizeBody :: [String] -> [PlGoal] -> [PlGoal]
-optimizeBody _ [] = []
+optimizeBody _    []                  = []
+optimizeBody vars (PlNeg goal : lits) =
+  PlNeg goal : optimizeBody (union vars (unionMap varsOfLit goal)) lits
 optimizeBody vars (PlCond cond tgoal fgoal : lits) =
- let ocond = optimizeBody vars cond
-     ocvars = union vars (unionMap varsOfLit cond)
-     otgoal = optimizeBody ocvars tgoal
-     ofgoal = optimizeBody ocvars fgoal
-  in PlCond ocond otgoal ofgoal
-      : optimizeBody (union ocvars (unionMap varsOfLit (otgoal++ofgoal))) lits
+  let ocond  = optimizeBody vars cond
+      ocvars = union vars (unionMap varsOfLit cond)
+      otgoal = optimizeBody ocvars tgoal
+      ofgoal = optimizeBody ocvars fgoal
+  in PlCond ocond otgoal ofgoal :
+     optimizeBody (union ocvars (unionMap varsOfLit (otgoal ++ ofgoal))) lits
 optimizeBody vars (PlLit pred args : lits)
- | pred=="=" && isPlVar (head args) && (varOf (head args) `notElem` vars)
+  | pred == "=" && isPlVar (head args) && (varOf (head args) `notElem` vars)
   = optimizeBody (union vars (varsOf (args!!1)))
                  (map (replaceInLit (varOf (head args)) (args!!1)) lits)
- | pred=="=" && isPlVar (args!!1) && (varOf (args!!1) `notElem` vars)
+  | pred == "=" && isPlVar (args!!1) && (varOf (args!!1) `notElem` vars)
   = optimizeBody (union vars (varsOf (args!!0)))
                  (map (replaceInLit (varOf (args!!1)) (args!!0)) lits)
- | otherwise
+  | otherwise
   = PlLit pred args : optimizeBody (union vars (unionMap varsOf args)) lits
 
 replaceInLit :: String -> PlTerm -> PlGoal -> PlGoal
 replaceInLit x y (PlLit pred args) = PlLit pred (map (replaceInTerm x y) args)
+replaceInLit x y (PlNeg goal)      = PlNeg (map (replaceInLit x y) goal)
 replaceInLit x y (PlCond cond tgoal fgoal) =
   PlCond (map (replaceInLit x y) cond)
          (map (replaceInLit x y) tgoal)
@@ -130,7 +135,8 @@ replaceInTerm _ _ (PlFloat f) = PlFloat f
 replaceInTerm x y (PlStruct f args) = PlStruct f (map (replaceInTerm x y) args)
 
 varsOfLit :: PlGoal -> [String]
-varsOfLit (PlLit _ args) = unionMap varsOf args
+varsOfLit (PlLit _ args)    = unionMap varsOf args
+varsOfLit (PlNeg g)         = unionMap varsOfLit g
 varsOfLit (PlCond g1 g2 g3) = unionMap varsOfLit (g1++g2++g3)
 
 varsOf :: PlTerm -> [String]
@@ -146,7 +152,9 @@ isPlVar t = case t of
               _       -> False
 
 varOf :: PlTerm -> String
-varOf (PlVar v) = v
+varOf t = case t of
+  PlVar v -> v
+  _       -> error "Internal error in Prolog.Show.varOf: not a variable"
 
 unionMap :: Eq b => (a -> [b]) -> [a] -> [b]
 unionMap f = foldr union [] . map f
