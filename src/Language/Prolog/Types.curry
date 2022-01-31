@@ -4,11 +4,11 @@
 --- for applications generating Prolog programs.
 ---
 --- @author Michael Hanus
---- @version November 2020
+--- @version January 2022
 ------------------------------------------------------------------------------
 
 module Language.Prolog.Types
-  ( PlClause(..), PlGoal(..), PlTerm(..), plList )
+  ( PlClause(..), PlGoal(..), PlTerm(..) )
  where
 
 ----------------------------------------------------------------------------
@@ -34,10 +34,6 @@ data PlTerm = PlVar String
             | PlFloat Float
             | PlStruct String [PlTerm]
  deriving Eq
-
---- Constructs a Prolog list object from a list of Prolog terms.
-plList :: [PlTerm] -> PlTerm
-plList = foldr (\t ts -> PlStruct "." [t,ts]) (PlAtom "[]")
 
 ----------------------------------------------------------------------------
 
